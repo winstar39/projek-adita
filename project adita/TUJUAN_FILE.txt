@@ -1,0 +1,243 @@
+PETA FRONTEND DAN BACKEND - KAMPUSKOLAB
+=======================================
+
+Nomor baris di bawah merujuk ke isi file saat peta ini dibuat. Baris kosong
+ikut dihitung; nomor dapat berubah setelah file diedit.
+
+STRUKTUR UTAMA
+--------------
+
+backend/
+  config/       Konfigurasi backend.
+  controllers/  Request, validasi, database, dan alur bisnis.
+  core/         Bootstrap, helper, dan renderer view.
+
+frontend/
+  views/        Template HTML/PHP untuk tampilan.
+
+database/ berisi schema dan data awal. storage/ menyimpan file privat di luar
+web root. Folder public/ di root adalah web root Apache. Folder backend/ tidak
+diekspos langsung oleh web server.
+
+FILE ROOT
+---------
+
+README.md (60 baris)
+  1-3   Ringkasan aplikasi dan teknologi.
+  5-16  Fitur MVP.
+  18-32 Cara menjalankan dengan Docker dan akun demo.
+  34-42 Cara menjalankan tanpa Docker.
+  44-53 Struktur folder baru.
+  54-57 Penjelasan hubungan frontend dan backend.
+  59-60 Catatan sebelum produksi.
+
+docker-compose.yml (40 baris)
+  1-18  Service PHP/Apache, port, koneksi database, dan volume source.
+  19-37 Service MySQL, port, data persisten, file inisialisasi, health check.
+  38-40 Volume persisten database.
+
+Dockerfile (7 baris)
+  1     Image PHP 8.3 dan Apache.
+  2-3   Instalasi PDO MySQL dan aktivasi modul Apache.
+  4-7   Virtual host, direktori kerja, source code, dan permission.
+
+.dockerignore (3 baris)
+  1-3   File/folder yang dikecualikan saat build Docker.
+
+.env.example (7 baris)
+  1-2   Mode aplikasi dan URL.
+  3-7   Contoh pengaturan koneksi database.
+
+.htaccess (1 baris)
+  1     Menonaktifkan daftar folder di Apache; file ini di root proyek.
+
+BACKEND
+-------
+
+backend/config/database.php (24 baris)
+  1-2   Pembuka PHP dan strict typing.
+  4-7   Fungsi db() dan penggunaan ulang koneksi PDO.
+  9-14  Environment variables, fallback, dan DSN database.
+  16-21 Membuat PDO dengan opsi error dan prepared statement.
+  23-24 Mengembalikan koneksi PDO.
+
+backend/core/bootstrap.php (102 baris)
+  1-14  Memuat koneksi database dan menyiapkan session/cookie.
+  16-18 Escape teks untuk HTML.
+  20-23 Redirect.
+  25-39 Token dan pemeriksaan CSRF.
+  41-43 Pesan flash sementara.
+  45-60 Mengambil pengguna login.
+  62-80 Pemeriksaan login dan role.
+  82-97 Audit log dan notifikasi.
+  99-102 Membaca input teks POST.
+
+backend/core/view.php (27 baris)
+  1-2   Pembuka PHP dan strict typing.
+  4-16  render_view(): validasi nama dan memuat template dari frontend/views/.
+  18-27 render_page(): merender header, isi halaman, dan footer.
+
+backend/controllers/AuthController.php (76 baris)
+  1-2   Pembuka PHP dan strict typing.
+  4-6   Menyiapkan halaman login.
+  8-14  Mengambil data program studi untuk halaman daftar.
+  16-38 Login, batas percobaan, dan pembuatan session.
+  40-69 Validasi dan penyimpanan akun baru.
+  71-76 Logout dan penghapusan session.
+
+backend/controllers/ProjectController.php (181 baris)
+  1-2    Pembuka PHP dan strict typing.
+  4-48   Filter, query, dan data daftar proyek.
+  50-53  Pemeriksaan login dan halaman formulir proyek.
+  55-99  Validasi serta penyimpanan proyek baru.
+  101-136 Mengambil detail proyek/anggota untuk view, termasuk respons 404.
+  138-181 Validasi kuota dan penyimpanan permintaan bergabung.
+
+backend/controllers/DashboardController.php (120 baris)
+  1-2    Pembuka PHP dan strict typing.
+  4-32   Mengambil data dashboard.
+  34-88  Memproses keputusan permintaan bergabung.
+  90-92  Menyiapkan halaman profil.
+  94-120 Memvalidasi dan menyimpan perubahan profil.
+
+backend/controllers/AdminController.php (64 baris)
+  1-2  Pembuka PHP dan strict typing.
+  4-14 Mengambil antrean moderasi dengan pemeriksaan role.
+  16-64 Memproses keputusan moderasi, notifikasi, dan audit.
+
+FRONTEND: TEMPLATE (frontend/views/)
+------------------------------------
+
+frontend/views/layouts/header.php (36 baris)
+  1-8   Awal dokumen HTML, metadata, judul, dan stylesheet.
+  9-29  Navigasi berdasarkan status login dan role.
+  30-36 Kontainer halaman dan pesan flash.
+
+frontend/views/layouts/footer.php (5 baris)
+  1-5   Footer, JavaScript, dan penutup dokumen HTML.
+
+frontend/views/home.php (61 baris)
+  1-27  Hero halaman utama dan ajakan.
+  28-61 Bagian fitur utama.
+
+frontend/views/auth/login.php (20 baris)
+  1-20  Form login dan tautan ke pendaftaran.
+
+frontend/views/auth/register.php (38 baris)
+  1-38  Form pendaftaran dan pilihan program studi.
+
+frontend/views/projects/index.php (61 baris)
+  1-9   Heading dan tombol pengajuan.
+  10-30 Filter proyek.
+  31-61 Kartu proyek dan tampilan hasil kosong.
+
+frontend/views/projects/create.php (55 baris)
+  1-55  Form pengajuan proyek.
+
+frontend/views/projects/detail.php (72 baris)
+  1-3   Tampilan ketika proyek tidak ditemukan.
+  4-15  Ringkasan dan metadata.
+  16-38 Deskripsi, luaran, skill, dan anggota tim.
+  39-71 Form join dan status pengguna.
+  72    Penutup kondisi.
+
+frontend/views/dashboard/index.php (76 baris)
+  1-12  Salam, statistik, dan tautan pengajuan.
+  13-43 Daftar proyek milik pengguna.
+  44-58 Notifikasi.
+  59-76 Permintaan anggota dan tombol keputusan.
+
+frontend/views/dashboard/profile.php (32 baris)
+  1-32  Form tampilan dan pengubahan profil.
+
+frontend/views/admin/review.php (39 baris)
+  1-8   Heading moderasi.
+  9-35  Detail proposal dan pilihan keputusan.
+  36-39 Tampilan antrean kosong.
+
+PUBLIC: WEB ROOT DAN ASET FRONTEND
+---------------------------
+
+public/index.php (44 baris)
+  1-8   Memuat backend bootstrap dan controller.
+  10-25 Pemetaan action formulir ke handler backend.
+  27-36 Pemetaan halaman ke controller.
+  38-44 Menjalankan halaman yang diminta atau home.
+
+public/api/projects.php (30 baris)
+  1-4   Bootstrap backend dan header JSON.
+  6-26  Query proyek yang boleh tampil dan respons sukses.
+  27-30 Respons JSON saat terjadi error.
+
+public/.htaccess (5 baris)
+  1     Menonaktifkan daftar isi direktori.
+  2     Menetapkan index.php sebagai halaman awal.
+  3-5   Membatasi akses file sensitif.
+
+public/assets/css/style.css (691 baris)
+  1       Import font.
+  2-60    Tema, reset, tipografi, dan container.
+  62-156  Header, navigasi, tombol.
+  157-302 Hero dan ilustrasi.
+  303-340 Bagian fitur dan heading.
+  343-405 Filter, kartu proyek, badge, dan empty state.
+  406-450 Form autentikasi dan input.
+  451-495 Form umum, alert, statistik.
+  496-518 Dashboard.
+  519-589 Detail proyek, anggota, join, moderasi.
+  590-612 Footer dan elemen tambahan.
+  613-691 Responsivitas tablet dan ponsel.
+
+public/assets/js/app.js (20 baris)
+  1-3   Inisialisasi setelah dokumen dimuat.
+  4-12  Status tombol saat formulir dikirim.
+  14-19 Konfirmasi elemen data-confirm.
+  20    Penutup listener.
+
+public/uploads/.gitkeep (0 baris)
+  Penanda agar folder upload publik ada di Git.
+
+DATABASE, DOCKER, DAN DOKUMENTASI
+---------------------------------
+
+database/schema.sql (112 baris)
+  1-2    Membuat dan memilih database.
+  4-11   Tabel program studi.
+  12-33  Tabel pengguna.
+  34-62  Tabel proyek.
+  63-73  Tabel anggota proyek.
+  74-90  Tabel permintaan bergabung.
+  91-101 Tabel notifikasi.
+  102-112 Tabel audit log.
+
+database/seed.sql (24 baris)
+  1      Memilih database.
+  2-14   Program studi awal.
+  16-19  Akun demo.
+  21-23  Proyek demo.
+  24     Anggota/pemimpin proyek demo.
+
+config/app.json (27 baris)
+  1-4   Metadata, locale, zona waktu.
+  5-12  Fitur aplikasi.
+  13-17 Role.
+  18-27 Kategori proyek.
+
+docker/apache-vhost.conf (13 baris)
+  1-2   VirtualHost dan web root public/.
+  3-7   Izin akses web root.
+  8-10  Melarang akses web ke storage.
+  11-13 Log dan penutup VirtualHost.
+
+docs/API.md (24 baris)
+  1-3   Judul dan alamat API.
+  4-22  Contoh respons JSON.
+  24    Batasan status/visibilitas hasil API.
+
+docs/ROADMAP.md (32 baris)
+  1-12  Fitur MVP.
+  14-23 Fitur rencana berikutnya.
+  25-32 Keputusan arsitektur, termasuk pemisahan frontend/backend.
+
+storage/.gitkeep (0 baris)
+  Penanda agar folder penyimpanan privat tetap ada di Git.
